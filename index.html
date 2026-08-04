@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>粵語粵拼標註器 (Jyutping Converter & Audio Exporter)</title>
+  
+  <!-- CDN for ToJyutping Engine -->
+  <script src="https://unpkg.com/to-jyutping@3.1.1/dist/index.js" onerror="handleCDNFail()"></script>
+
+  <style>
+    :root {
+      /* 粵語 6 聲調色彩 */
+      --tone-1: #e74c3c; /* 陰平 (1) */
+      --tone-2: #e67e22; /* 陰上 (2) */
+      --tone-3: #2ecc71; /* 陰去 (3) */
+      --tone-4: #3498db; /* 陽平 (4) */
+      --tone-5: #9b59b6; /* 陽上 (5) */
+      --tone-6: #16a085; /* 陽去 (6) */
+
+      --bg: #f4f6f8;
+      --card-bg: #ffffff;
+      --border: #e1e8ed;
+      --text: #2c3e50;
+      --primary: #2563eb;
+      --success: #10b981;
+      --purple: #8b5cf6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang HK", "Traditional Chinese", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 1.5rem 1rem;
+    }
+
+    .container { max-width: 950px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 1.2rem; }
+    header h1 { font-size: 1.8rem; color: #1e293b; margin-bottom: 0.2rem; }
+    
+    .status-bar {
+      text-align: center;
+      font-size: 0.85rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 0.3rem;
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    /* 两栏布局 */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin: 1.2rem 0;
+    }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card-header {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      color: #475569;
+    }
+
+    textarea {
+      width: 100%;
+      height: 280px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-size: 1.05rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--primary); }
+
+    .output-box {
+      height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      background: #fff;
+      line-height: 2.6;
+      font-size: 1.15rem;
+    }
+
+    /* Ruby Styling */
+    ruby.jyut-node {
+      ruby-position: over;
+      padding: 2px 3px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    ruby.jyut-node:hover { background: #f1f5f9; }
+    ruby.jyut-node.selected { background: #e2e8f0; outline: 1px solid var(--primary); }
+
+    rt {
+      font-size: 0.55em;
+      font-weight: 600;
+      user-select: none;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Tone Colors */
+    rt[data-tone="1"] { color: var(--tone-1); }
+    rt[data-tone="2"] { color: var(--tone-2); }
+    rt[data-tone="3"] { color: var(--tone-3); }
+    rt[data-tone="4"] { color: var(--tone-4); }
+    rt[data-tone="5"] { color: var(--tone-5); }
+    rt[data-tone="6"] { color: var(--tone-6); }
+
+    /* Inspector */
+    .inspector {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem;
+      margin-bottom: 1.2rem;
+    }
+    .candidate-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .btn-candidate {
+      padding: 0.3rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #f8fafc;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    /* Toolbar Buttons */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: flex-end; }
+    button.btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    button.btn:hover { background: #f1f5f9; }
+
+    button.btn-pdf {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+    button.btn-pdf:hover { background: #1d4ed8; }
+
+    button.btn-audio {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+      font-weight: 600;
+    }
+    button.btn-audio:hover { background: #059669; }
+
+    button.btn-mp3 {
+      background: var(--purple);
+      color: white;
+      border-color: var(--purple);
+      font-weight: 600;
+    }
+    button.btn-mp3:hover { background: #7c3aed; }
+
+    .legend {
+      display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.82rem;
+      justify-content: center; color: #64748b;
+    }
+    .legend-item { display: flex; align-items: center; gap: 0.3rem; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+    /* Print / PDF Specific Overrides */
+    @media print {
+      header, .status-bar, .toolbar, .card:first-child, .inspector, .legend {
+        display: none !important;
+      }
+      body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
+      .container { max-width: 100% !important; width: 100% !important; margin: 0 !important; }
+      .grid { display: block !important; margin: 0 !important; }
+      .card { border: none !important; box-shadow: none !important; padding: 0 !important; }
+      .output-box {
+        height: auto !important; overflow: visible !important;
+        border: none !important; padding: 0 !important;
+        font-size: 18pt !important; line-height: 2.8 !important;
+      }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>粵語粵拼標註器</h1>
+      <div id="status-bar" class="status-bar">⏳ 正在初始化粵拼引擎...</div>
+    </header>
+
+    <div class="toolbar">
+      <button class="btn btn-audio" id="btn-play" onclick="togglePlayAudio()">🔊 朗讀發音</button>
+      <button class="btn btn-mp3" onclick="downloadMP3()">🎵 匯出 MP3</button>
+      <button class="btn btn-pdf" onclick="exportPDF()">📄 列印 / 匯出 PDF</button>
+      <button class="btn" onclick="copyFormat('inline')">複製「文字(Jyutping)」</button>
+      <button class="btn" onclick="copyFormat('pure')">複製純粵拼</button>
+      <button class="btn" onclick="copyFormat('html')">複製 HTML 標籤</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">輸入中文：</div>
+        <textarea id="input-text" oninput="convert()" placeholder="請在此輸入文本...">咁啱老世要求佢等陣要開會，剩低嘅嘢我會搞掂㗎喇。
+幻變的一生，默默期待一份愛。</textarea>
+      </div>
+
+      <div class="card">
+        <div class="card-header">粵拼標註預覽：</div>
+        <div id="output-area" class="output-box"></div>
+      </div>
+    </div>
+
+    <div class="inspector">
+      <div class="card-header" style="margin:0;">多音字與讀音切換：</div>
+      <div id="inspector-body" style="color:#94a3b8; font-size:0.9rem; margin-top:0.4rem;">
+        點擊上方預覽中的字元，即可在此切換備選粵拼讀音。
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:var(--tone-1)"></span> 1 陰平</div>
+      <div class="legend-item"><span class="dot" style="background:var(--tone-2)"></span> 2 陰上</div>
+      <div class="legend-item"><span class="dot" style="background:var(--tone-3)"></span> 3 陰去</div>
+      <div class="legend-item"><span class="dot" style="background:var(--tone-4)"></span> 4 陽平</div>
+      <div class="legend-item"><span class="dot" style="background:var(--tone-5)"></span> 5 陽上</div>
+      <div class="legend-item"><span class="dot" style="background:var(--tone-6)"></span> 6 陽去</div>
+    </div>
+  </div>
+
+<script>
+let selectedRubyNode = null;
+let isOfflineMode = false;
+let isSpeaking = false;
+
+const FALLBACK_JYUTPING = {
+  "咁": [["gam3", 3]], "啱": [["ngaam1", 1]], "老": [["lou5", 5]], "世": [["sai3", 3]], 
+  "要": [["jiu3", 3]], "求": [["kau4", 4]], "佢": [["heoi5", 5]], "等": [["dang2", 2]], 
+  "陣": [["zan6", 6]], "開": [["hoi1", 1]], "會": [["wui6", 6]], "剩": [["zing6", 6]], 
+  "低": [["dai1", 1]], "嘅": [["ge3", 3]], "嘢": [["je5", 5]], "我": [["ngo5", 5]], 
+  "搞": [["gaau2", 2]], "掂": [["dim6", 6]], "㗎": [["gaa3", 3]], "喇": [["laa3", 3]],
+  "幻": [["waan6", 6]], "變": [["bin3", 3]], "的": [["dik1", 1], ["dik6", 6]],
+  "一": [["jat1", 1]], "生": [["saang1", 1]], "默": [["mak6", 6]],
+  "期": [["kei4", 4]], "待": [["doi6", 6]], "份": [["fan6", 6]], "愛": [["oi3", 3]]
+};
+
+function handleCDNFail() {
+  isOfflineMode = true;
+  updateStatus("⚠️ CDN 腳本未能載入，已切換至【離線備用詞庫】", "#f59e0b");
+  convert();
+}
+
+function updateStatus(msg, color) {
+  const statusBar = document.getElementById('status-bar');
+  statusBar.innerText = msg;
+  if(color) { statusBar.style.background = color; statusBar.style.color = "#fff"; }
+}
+
+function getTone(jyutping) {
+  if (!jyutping) return 0;
+  const match = jyutping.match(/\d$/);
+  return match ? parseInt(match[0]) : 0;
+}
+
+function convert() {
+  stopAudio();
+  const text = document.getElementById('input-text').value;
+  const outputArea = document.getElementById('output-area');
+  outputArea.innerHTML = '';
+
+  let parsed = [];
+  if (typeof ToJyutping !== 'undefined' && !isOfflineMode) {
+    updateStatus("🟢 在線 NLP 粵拼引擎運行中", "#10b981");
+    parsed = ToJyutping.getJyutpingCandidates(text);
+  } else {
+    parsed = Array.from(text).map(char => [char, FALLBACK_JYUTPING[char] ? FALLBACK_JYUTPING[char].map(i => i[0]) : []]);
+  }
+
+  parsed.forEach(([char, candidates]) => {
+    if (char === '\n') { outputArea.appendChild(document.createElement('br')); return; }
+    if (!candidates || candidates.length === 0 || !candidates[0]) {
+      outputArea.appendChild(document.createTextNode(char)); return;
+    }
+    const defaultJyut = candidates[0];
+    const tone = getTone(defaultJyut);
+    const ruby = document.createElement('ruby');
+    ruby.className = 'jyut-node';
+    ruby.dataset.char = char;
+    ruby.dataset.candidates = JSON.stringify(candidates);
+    ruby.innerHTML = `${char}<rp>(</rp><rt data-tone="${tone}">${defaultJyut}</rt><rp>)</rp>`;
+    ruby.onclick = () => {
+      selectNode(ruby);
+      playCharacterAudio(char);
+    };
+    outputArea.appendChild(ruby);
+  });
+}
+
+function selectNode(rubyNode) {
+  if (selectedRubyNode) selectedRubyNode.classList.remove('selected');
+  selectedRubyNode = rubyNode;
+  selectedRubyNode.classList.add('selected');
+
+  const char = rubyNode.dataset.char;
+  const candidates = JSON.parse(rubyNode.dataset.candidates);
+  const inspectorBody = document.getElementById('inspector-body');
+
+  let html = `<strong>字元:</strong> ${char} &nbsp;&nbsp; <strong>切換讀音:</strong> <div class="candidate-btns">`;
+  candidates.forEach(jyut => {
+    const tone = getTone(jyut);
+    html += `<button class="btn-candidate" onclick="setPronunciation('${jyut}', ${tone})">${jyut}</button>`;
+  });
+  html += `</div>`;
+  inspectorBody.innerHTML = html;
+}
+
+function setPronunciation(jyut, tone) {
+  if (!selectedRubyNode) return;
+  const rt = selectedRubyNode.querySelector('rt');
+  rt.innerText = jyut;
+  rt.dataset.tone = tone;
+}
+
+/* ================= 語音朗讀與 MP3 匯出功能 ================= */
+
+function getCantoneseVoice() {
+  return window.speechSynthesis.getVoices().find(voice =>
+    /^(?:yue(?:[-_]HK)?|zh[-_]HK)$/i.test(voice.lang)
+  ) || null;
+}
+
+function playCharacterAudio(char) {
+  if (!('speechSynthesis' in window)) return;
+
+  const cantoneseVoice = getCantoneseVoice();
+  if (!cantoneseVoice) {
+    alert('未偵測到粵語語音。請先在系統或瀏覽器安裝粵語（香港）語音包。');
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(char);
+  utterance.lang = cantoneseVoice.lang;
+  utterance.voice = cantoneseVoice;
+  utterance.rate = 0.8;
+  window.speechSynthesis.speak(utterance);
+}
+
+function togglePlayAudio() {
+  if (isSpeaking) {
+    stopAudio();
+    return;
+  }
+
+  const text = document.getElementById('input-text').value.trim();
+  if (!text) { alert('請先輸入文字！'); return; }
+
+  if (!('speechSynthesis' in window)) {
+    alert('您的瀏覽器不支援語音合成功能');
+    return;
+  }
+
+  const cantoneseVoice = getCantoneseVoice();
+  if (!cantoneseVoice) {
+    alert('未偵測到粵語語音。請先在系統或瀏覽器安裝粵語（香港）語音包。');
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = cantoneseVoice.lang;
+  utterance.voice = cantoneseVoice;
+  utterance.rate = 0.9;     // 稍微調慢語速以便聽清
+
+  utterance.onstart = () => {
+    isSpeaking = true;
+    document.getElementById('btn-play').innerText = '⏹️ 停止朗讀';
+  };
+
+  utterance.onend = () => {
+    stopAudio();
+  };
+
+  utterance.onerror = () => {
+    stopAudio();
+    alert('語音播放出現錯誤，請確認系統已安裝粵語語音包。');
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function stopAudio() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  isSpeaking = false;
+  const playBtn = document.getElementById('btn-play');
+  if (playBtn) playBtn.innerText = '🔊 朗讀發音';
+}
+
+function downloadMP3() {
+  const text = document.getElementById('input-text').value.trim();
+  if (!text) { alert('請先輸入文字！'); return; }
+
+  if (text.length > 200) {
+    alert('提示：由於語音合成介面限制，系統將為您導出前 200 個字元的 MP3 音訊。');
+  }
+
+  const cleanText = text.substring(0, 200);
+  // 使用 Google TTS 粵語 (yue) API 介面生成 MP3
+  const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=yue&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
+
+  // 創建隱藏的下載鏈接發起下載
+  const a = document.createElement('a');
+  a.href = ttsUrl;
+  a.target = '_blank';
+  a.download = `粵語發音_${new Date().getTime()}.mp3`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* ======================================================= */
+
+function exportPDF() { window.print(); }
+
+function copyFormat(type) {
+  const outputArea = document.getElementById('output-area');
+  let result = '';
+  if (type === 'html') result = outputArea.innerHTML;
+  else if (type === 'inline') {
+    outputArea.childNodes.forEach(node => {
+      if (node.tagName === 'RUBY') result += `${node.dataset.char}(${node.querySelector('rt').innerText})`;
+      else if (node.tagName === 'BR') result += '\n';
+      else result += node.textContent;
+    });
+  } else if (type === 'pure') {
+    outputArea.childNodes.forEach(node => {
+      if (node.tagName === 'RUBY') result += node.querySelector('rt').innerText + ' ';
+      else if (node.tagName === 'BR') result += '\n';
+      else result += node.textContent;
+    });
+  }
+  navigator.clipboard.writeText(result.trim());
+  alert('已複製到剪貼簿！');
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (typeof ToJyutping === 'undefined') handleCDNFail();
+    else convert();
+  }, 300);
+});
+</script>
+
+</body>
+</html>
