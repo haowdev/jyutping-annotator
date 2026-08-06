@@ -59,6 +59,16 @@
       margin: 1.2rem 0;
     }
 
+    .input-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.2rem;
+    }
+
+    @media (max-width: 700px) {
+      .input-row { grid-template-columns: 1fr; }
+    }
+
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -146,6 +156,8 @@
 
     /* Toolbar Buttons */
     .toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: flex-end; }
+    .container > .toolbar { justify-content: flex-start; }
+    .preview-toolbar { margin-top: 0.75rem; }
     button.btn {
       padding: 0.5rem 1rem;
       border: 1px solid var(--border);
@@ -182,6 +194,20 @@
     }
     button.btn-mp3:hover { background: #7c3aed; }
 
+    button.btn-convert {
+      background: #0f766e;
+      color: white;
+      border-color: #0f766e;
+      font-weight: 600;
+    }
+    button.btn-convert:hover { background: #115e59; }
+    button.btn-convert:disabled { cursor: wait; opacity: 0.7; }
+
+    .conversion-result {
+      height: 280px;
+      background: #f8fafc;
+    }
+
     .legend {
       display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.82rem;
       justify-content: center; color: #64748b;
@@ -191,7 +217,7 @@
 
     /* Print / PDF Specific Overrides */
     @media print {
-      header, .status-bar, .toolbar, .card:first-child, .inspector, .legend {
+      header, .status-bar, .toolbar, .input-row, .inspector, .legend {
         display: none !important;
       }
       body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
@@ -216,24 +242,33 @@
     </header>
 
     <div class="toolbar">
+      <button class="btn btn-convert" id="btn-convert-cantonese" onclick="convertToCantonese()">轉換成粵語表達</button>
       <button class="btn btn-audio" id="btn-play" onclick="togglePlayAudio()">🔊 朗讀發音</button>
       <button class="btn btn-mp3" onclick="downloadMP3()">🎵 匯出 MP3</button>
-      <button class="btn btn-pdf" onclick="exportPDF()">📄 列印 / 匯出 PDF</button>
-      <button class="btn" onclick="copyFormat('inline')">複製「文字(Jyutping)」</button>
-      <button class="btn" onclick="copyFormat('pure')">複製純粵拼</button>
-      <button class="btn" onclick="copyFormat('html')">複製 HTML 標籤</button>
+      <button class="btn btn-pdf" onclick="exportPDF()">📄 列印 / PDF</button>
     </div>
 
     <div class="grid">
-      <div class="card">
-        <div class="card-header">輸入中文：</div>
-        <textarea id="input-text" oninput="convert()" placeholder="請在此輸入文本...">咁啱老世要求佢等陣要開會，剩低嘅嘢我會搞掂㗎喇。
+      <div class="input-row">
+        <div class="card">
+          <div class="card-header">輸入普通話：</div>
+          <textarea id="input-text" oninput="useInputForAnnotation()" placeholder="請在此輸入普通話表達...">咁啱老世要求佢等陣要開會，剩低嘅嘢我會搞掂㗎喇。
 幻變的一生，默默期待一份愛。</textarea>
+        </div>
+
+        <div class="card">
+          <div class="card-header">粵語表達轉換結果（可自行修改）：</div>
+          <textarea id="cantonese-output" class="conversion-result" oninput="useTranslationForAnnotation()" placeholder="輸入普通話表達後，按上方「轉換成粵語表達」"></textarea>
+        </div>
       </div>
 
       <div class="card">
-        <div class="card-header">粵拼標註預覽：</div>
+        <div id="preview-title" class="card-header">粵拼標註預覽（輸入原文）：</div>
         <div id="output-area" class="output-box"></div>
+        <div class="toolbar preview-toolbar">
+          <button class="btn" onclick="copyFormat('inline')">複製「文字(Jyutping)」</button>
+          <button class="btn" onclick="copyFormat('pure')">複製純粵拼</button>
+        </div>
       </div>
     </div>
 
@@ -258,6 +293,7 @@
 let selectedRubyNode = null;
 let isOfflineMode = false;
 let isSpeaking = false;
+let annotationSource = 'input';
 
 const FALLBACK_JYUTPING = {
   "咁": [["gam3", 3]], "啱": [["ngaam1", 1]], "老": [["lou5", 5]], "世": [["sai3", 3]], 
@@ -288,9 +324,28 @@ function getTone(jyutping) {
   return match ? parseInt(match[0]) : 0;
 }
 
+function useInputForAnnotation() {
+  annotationSource = 'input';
+  convert();
+}
+
+function useTranslationForAnnotation() {
+  annotationSource = 'translation';
+  convert();
+}
+
+function getAnnotationText() {
+  const fieldId = annotationSource === 'translation' ? 'cantonese-output' : 'input-text';
+  return document.getElementById(fieldId).value;
+}
+
 function convert() {
   stopAudio();
-  const text = document.getElementById('input-text').value;
+  const isUsingTranslation = annotationSource === 'translation';
+  const text = getAnnotationText();
+  document.getElementById('preview-title').innerText = isUsingTranslation
+    ? '粵拼標註預覽（粵語轉換結果）：'
+    : '粵拼標註預覽（輸入原文）：';
   const outputArea = document.getElementById('output-area');
   outputArea.innerHTML = '';
 
@@ -347,6 +402,44 @@ function setPronunciation(jyut, tone) {
   rt.dataset.tone = tone;
 }
 
+async function convertToCantonese() {
+  const sourceText = document.getElementById('input-text').value.trim();
+  const resultArea = document.getElementById('cantonese-output');
+  const convertButton = document.getElementById('btn-convert-cantonese');
+
+  if (!sourceText) {
+    alert('請先輸入普通話表達！');
+    return;
+  }
+
+  convertButton.disabled = true;
+  convertButton.innerText = '正在轉換...';
+  try {
+    const url = new URL('https://translate.googleapis.com/translate_a/single');
+    url.searchParams.set('client', 'gtx');
+    url.searchParams.set('sl', 'zh-CN');
+    url.searchParams.set('tl', 'yue');
+    url.searchParams.set('dt', 't');
+    url.searchParams.set('q', sourceText);
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`翻譯服務回應 ${response.status}`);
+
+    const data = await response.json();
+    const translatedText = data?.[0]?.map(segment => segment[0]).join('');
+    if (!translatedText) throw new Error('翻譯服務沒有返回結果');
+
+    resultArea.value = translatedText;
+    useTranslationForAnnotation();
+  } catch (error) {
+    console.error('Cantonese conversion failed:', error);
+    alert('未能完成轉換。請檢查網絡連線後再試。');
+  } finally {
+    convertButton.disabled = false;
+    convertButton.innerText = '轉換成粵語表達';
+  }
+}
+
 /* ================= 語音朗讀與 MP3 匯出功能 ================= */
 
 function getCantoneseVoice() {
@@ -378,7 +471,7 @@ function togglePlayAudio() {
     return;
   }
 
-  const text = document.getElementById('input-text').value.trim();
+  const text = getAnnotationText().trim();
   if (!text) { alert('請先輸入文字！'); return; }
 
   if (!('speechSynthesis' in window)) {
@@ -424,7 +517,7 @@ function stopAudio() {
 }
 
 function downloadMP3() {
-  const text = document.getElementById('input-text').value.trim();
+  const text = getAnnotationText().trim();
   if (!text) { alert('請先輸入文字！'); return; }
 
   if (text.length > 200) {
@@ -452,8 +545,7 @@ function exportPDF() { window.print(); }
 function copyFormat(type) {
   const outputArea = document.getElementById('output-area');
   let result = '';
-  if (type === 'html') result = outputArea.innerHTML;
-  else if (type === 'inline') {
+  if (type === 'inline') {
     outputArea.childNodes.forEach(node => {
       if (node.tagName === 'RUBY') result += `${node.dataset.char}(${node.querySelector('rt').innerText})`;
       else if (node.tagName === 'BR') result += '\n';
