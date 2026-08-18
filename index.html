@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>粵語粵拼標註器 (Jyutping Converter & Audio Exporter)</title>
+  <title>粵語粵拼標註器 (Jyutping Converter)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;600;700;800&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
   
   <!-- CDN for ToJyutping Engine -->
   <script src="https://unpkg.com/to-jyutping@3.1.1/dist/index.js" onerror="handleCDNFail()"></script>
@@ -18,37 +21,55 @@
       --tone-5: #9b59b6; /* 陽上 (5) */
       --tone-6: #16a085; /* 陽去 (6) */
 
-      --bg: #f4f6f8;
-      --card-bg: #ffffff;
-      --border: #e1e8ed;
-      --text: #2c3e50;
-      --primary: #2563eb;
-      --success: #10b981;
-      --purple: #8b5cf6;
+      --bg: #ece3cf;
+      --card-bg: #fffdf5;
+      --border: #174c44;
+      --text: #172b28;
+      --primary: #c33c29;
+      --success: #166957;
+      --gold: #d59a27;
+      --ink: #123d37;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang HK", "Traditional Chinese", sans-serif;
-      background: var(--bg);
+      font-family: "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", sans-serif;
+      background-color: var(--bg);
+      background-image: repeating-linear-gradient(0deg, rgba(92, 63, 32, 0.055) 0, rgba(92, 63, 32, 0.055) 1px, transparent 1px, transparent 5px);
       color: var(--text);
       line-height: 1.6;
       padding: 1.5rem 1rem;
     }
 
     .container { max-width: 950px; margin: 0 auto; }
-    header { text-align: center; margin-bottom: 1.2rem; }
-    header h1 { font-size: 1.8rem; color: #1e293b; margin-bottom: 0.2rem; }
+    header {
+      text-align: center;
+      margin-bottom: 1.4rem;
+      padding: 1rem 1rem 0.85rem;
+      border: 3px solid var(--ink);
+      border-radius: 5px;
+      background: var(--ink);
+      box-shadow: 5px 5px 0 rgba(99, 55, 27, 0.28);
+    }
+    header h1 {
+      font-family: "Noto Serif TC", "PMingLiU", serif;
+      font-size: 2rem;
+      letter-spacing: 0.12em;
+      color: #fff6da;
+      margin: 0.15rem 0 0.25rem 0.12em;
+      text-shadow: 2px 2px 0 #a62d20;
+    }
     
     .status-bar {
       text-align: center;
       font-size: 0.85rem;
       padding: 0.3rem 0.8rem;
-      border-radius: 20px;
+      border: 1px solid #f6cf6c;
+      border-radius: 3px;
       display: inline-block;
       margin-top: 0.3rem;
-      background: #e2e8f0;
-      color: #475569;
+      background: #f6cf6c;
+      color: var(--ink);
     }
 
     /* 垂直布局 */
@@ -72,38 +93,39 @@
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 5px;
       padding: 1rem;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border-width: 2px;
+      box-shadow: 4px 4px 0 rgba(23, 76, 68, 0.18);
     }
 
     .card-header {
-      font-weight: 600;
+      font-weight: 800;
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
-      color: #475569;
+      color: var(--ink);
     }
 
     textarea {
       width: 100%;
       height: 280px;
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 3px;
       padding: 0.75rem;
       font-size: 1.05rem;
       font-family: inherit;
       resize: vertical;
       outline: none;
     }
-    textarea:focus { border-color: var(--primary); }
+    textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(195, 60, 41, 0.2); }
 
     .output-box {
       height: 280px;
       overflow-y: auto;
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 3px;
       padding: 0.75rem;
       background: #fff;
       line-height: 2.6;
@@ -118,8 +140,8 @@
       cursor: pointer;
       transition: background 0.15s;
     }
-    ruby.jyut-node:hover { background: #f1f5f9; }
-    ruby.jyut-node.selected { background: #e2e8f0; outline: 1px solid var(--primary); }
+    ruby.jyut-node:hover { background: #f8e7bd; }
+    ruby.jyut-node.selected { background: #f4d47d; outline: 2px solid var(--primary); }
 
     rt {
       font-size: 0.55em;
@@ -140,7 +162,7 @@
     .inspector {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 5px;
       padding: 0.9rem;
       margin-bottom: 1.2rem;
     }
@@ -148,27 +170,27 @@
     .btn-candidate {
       padding: 0.3rem 0.7rem;
       border: 1px solid var(--border);
-      border-radius: 4px;
-      background: #f8fafc;
+      border-radius: 3px;
+      background: #fff7de;
       cursor: pointer;
       font-weight: 600;
     }
 
     /* Toolbar Buttons */
     .toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: flex-end; }
-    .container > .toolbar { justify-content: flex-start; }
+    .container > .toolbar { justify-content: center; }
     .preview-toolbar { margin-top: 0.75rem; }
     button.btn {
       padding: 0.5rem 1rem;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      background: #fff;
+      border-radius: 3px;
+      background: #fff7de;
       cursor: pointer;
       font-size: 0.88rem;
-      font-weight: 500;
-      transition: all 0.2s;
+      font-weight: 700;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
     }
-    button.btn:hover { background: #f1f5f9; }
+    button.btn:hover { background: #f3df9c; transform: translateY(-1px); box-shadow: 2px 2px 0 rgba(23, 76, 68, 0.25); }
 
     button.btn-pdf {
       background: var(--primary);
@@ -176,7 +198,7 @@
       border-color: var(--primary);
       font-weight: 600;
     }
-    button.btn-pdf:hover { background: #1d4ed8; }
+    button.btn-pdf:hover { background: #a62d20; }
 
     button.btn-audio {
       background: var(--success);
@@ -184,33 +206,25 @@
       border-color: var(--success);
       font-weight: 600;
     }
-    button.btn-audio:hover { background: #059669; }
-
-    button.btn-mp3 {
-      background: var(--purple);
-      color: white;
-      border-color: var(--purple);
-      font-weight: 600;
-    }
-    button.btn-mp3:hover { background: #7c3aed; }
+    button.btn-audio:hover { background: #0d5848; }
 
     button.btn-convert {
-      background: #0f766e;
+      background: #c33c29;
       color: white;
-      border-color: #0f766e;
+      border-color: #c33c29;
       font-weight: 600;
     }
-    button.btn-convert:hover { background: #115e59; }
+    button.btn-convert:hover { background: #a62d20; }
     button.btn-convert:disabled { cursor: wait; opacity: 0.7; }
 
     .conversion-result {
       height: 280px;
-      background: #f8fafc;
+      background: #f9f0d6;
     }
 
     .legend {
       display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.82rem;
-      justify-content: center; color: #64748b;
+      justify-content: center; color: var(--ink);
     }
     .legend-item { display: flex; align-items: center; gap: 0.3rem; }
     .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -244,7 +258,6 @@
     <div class="toolbar">
       <button class="btn btn-convert" id="btn-convert-cantonese" onclick="convertToCantonese()">轉換成粵語表達</button>
       <button class="btn btn-audio" id="btn-play" onclick="togglePlayAudio()">🔊 朗讀發音</button>
-      <button class="btn btn-mp3" onclick="downloadMP3()">🎵 匯出 MP3</button>
       <button class="btn btn-pdf" onclick="exportPDF()">📄 列印 / PDF</button>
     </div>
 
@@ -440,7 +453,7 @@ async function convertToCantonese() {
   }
 }
 
-/* ================= 語音朗讀與 MP3 匯出功能 ================= */
+/* ================= 語音朗讀功能 ================= */
 
 function getCantoneseVoice() {
   return window.speechSynthesis.getVoices().find(voice =>
@@ -514,28 +527,6 @@ function stopAudio() {
   isSpeaking = false;
   const playBtn = document.getElementById('btn-play');
   if (playBtn) playBtn.innerText = '🔊 朗讀發音';
-}
-
-function downloadMP3() {
-  const text = getAnnotationText().trim();
-  if (!text) { alert('請先輸入文字！'); return; }
-
-  if (text.length > 200) {
-    alert('提示：由於語音合成介面限制，系統將為您導出前 200 個字元的 MP3 音訊。');
-  }
-
-  const cleanText = text.substring(0, 200);
-  // 使用 Google TTS 粵語 (yue) API 介面生成 MP3
-  const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=yue&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
-
-  // 創建隱藏的下載鏈接發起下載
-  const a = document.createElement('a');
-  a.href = ttsUrl;
-  a.target = '_blank';
-  a.download = `粵語發音_${new Date().getTime()}.mp3`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
 }
 
 /* ======================================================= */
