@@ -255,18 +255,15 @@
       <div id="status-bar" class="status-bar">⏳ 正在初始化粵拼引擎...</div>
     </header>
 
-    <div class="toolbar">
-      <button class="btn btn-convert" id="btn-convert-cantonese" onclick="convertToCantonese()">轉換成粵語表達</button>
-      <button class="btn btn-audio" id="btn-play" onclick="togglePlayAudio()">🔊 朗讀發音</button>
-      <button class="btn btn-pdf" onclick="exportPDF()">📄 列印 / PDF</button>
-    </div>
-
     <div class="grid">
       <div class="input-row">
         <div class="card">
           <div class="card-header">輸入普通話：</div>
-          <textarea id="input-text" oninput="useInputForAnnotation()" placeholder="請在此輸入普通話表達...">咁啱老世要求佢等陣要開會，剩低嘅嘢我會搞掂㗎喇。
-幻變的一生，默默期待一份愛。</textarea>
+          <textarea id="input-text" oninput="stopAudio()" placeholder="請在此輸入普通話表達...">剛好老闆要求他等一下要開會，剩下的事情我會搞定的。
+變幻的一生，默默期待一份愛。</textarea>
+          <div class="toolbar preview-toolbar">
+            <button class="btn btn-convert" id="btn-convert-cantonese" onclick="convertToCantonese()">轉換成粵語表達</button>
+          </div>
         </div>
 
         <div class="card">
@@ -279,8 +276,9 @@
         <div id="preview-title" class="card-header">粵拼標註預覽（輸入原文）：</div>
         <div id="output-area" class="output-box"></div>
         <div class="toolbar preview-toolbar">
+          <button class="btn btn-audio" id="btn-play" onclick="togglePlayAudio()">🔊 朗讀發音</button>
+          <button class="btn btn-pdf" onclick="exportPDF()">📄 列印 / PDF</button>
           <button class="btn" onclick="copyFormat('inline')">複製「文字(Jyutping)」</button>
-          <button class="btn" onclick="copyFormat('pure')">複製純粵拼</button>
         </div>
       </div>
     </div>
@@ -306,7 +304,7 @@
 let selectedRubyNode = null;
 let isOfflineMode = false;
 let isSpeaking = false;
-let annotationSource = 'input';
+let annotationSource = 'translation';
 
 const FALLBACK_JYUTPING = {
   "咁": [["gam3", 3]], "啱": [["ngaam1", 1]], "老": [["lou5", 5]], "世": [["sai3", 3]], 
@@ -335,11 +333,6 @@ function getTone(jyutping) {
   if (!jyutping) return 0;
   const match = jyutping.match(/\d$/);
   return match ? parseInt(match[0]) : 0;
-}
-
-function useInputForAnnotation() {
-  annotationSource = 'input';
-  convert();
 }
 
 function useTranslationForAnnotation() {
