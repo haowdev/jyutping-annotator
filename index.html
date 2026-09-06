@@ -21,21 +21,21 @@
       --tone-5: #9b59b6; /* 陽上 (5) */
       --tone-6: #16a085; /* 陽去 (6) */
 
-      --bg: #ece3cf;
-      --card-bg: #fffdf5;
-      --border: #174c44;
-      --text: #172b28;
-      --primary: #c33c29;
-      --success: #166957;
-      --gold: #d59a27;
-      --ink: #123d37;
+      --bg: #e6dcc8;
+      --card-bg: #fbf4e5;
+      --border: #24201b;
+      --text: #24201b;
+      --primary: #a6271b;
+      --success: #294f43;
+      --gold: #b5842d;
+      --ink: #171410;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", sans-serif;
       background-color: var(--bg);
-      background-image: repeating-linear-gradient(0deg, rgba(92, 63, 32, 0.055) 0, rgba(92, 63, 32, 0.055) 1px, transparent 1px, transparent 5px);
+      background-image: repeating-linear-gradient(90deg, rgba(74, 58, 37, 0.035) 0, rgba(74, 58, 37, 0.035) 1px, transparent 1px, transparent 4px);
       color: var(--text);
       line-height: 1.6;
       padding: 1.5rem 1rem;
@@ -44,31 +44,41 @@
     .container { max-width: 950px; margin: 0 auto; }
     header {
       text-align: center;
-      margin-bottom: 1.4rem;
-      padding: 1rem 1rem 0.85rem;
-      border: 3px solid var(--ink);
-      border-radius: 5px;
-      background: var(--ink);
-      box-shadow: 5px 5px 0 rgba(99, 55, 27, 0.28);
+      margin-bottom: 1.7rem;
+      padding: 0.55rem 1rem 0.8rem;
+      border-top: 5px solid var(--ink);
+      border-bottom: 3px double var(--ink);
+      background: transparent;
+      box-shadow: none;
     }
+    .edition {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: var(--ink);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+    }
+    .edition::before, .edition::after { content: ""; height: 1px; flex: 1; background: var(--ink); }
     header h1 {
       font-family: "Noto Serif TC", "PMingLiU", serif;
-      font-size: 2rem;
-      letter-spacing: 0.12em;
-      color: #fff6da;
-      margin: 0.15rem 0 0.25rem 0.12em;
-      text-shadow: 2px 2px 0 #a62d20;
+      font-size: 2.5rem;
+      letter-spacing: 0.2em;
+      color: var(--ink);
+      margin: 0.2rem 0 0.35rem 0.2em;
+      text-shadow: none;
     }
     
     .status-bar {
       text-align: center;
       font-size: 0.85rem;
       padding: 0.3rem 0.8rem;
-      border: 1px solid #f6cf6c;
-      border-radius: 3px;
+      border: 1px solid var(--ink);
+      border-radius: 0;
       display: inline-block;
       margin-top: 0.3rem;
-      background: #f6cf6c;
+      background: transparent;
       color: var(--ink);
     }
 
@@ -86,19 +96,35 @@
       gap: 1.2rem;
     }
 
+    .translation-panel {
+      margin-bottom: 1.2rem;
+      border: 1px solid var(--border);
+      border-radius: 0;
+      background: var(--card-bg);
+      padding: 0.9rem;
+    }
+    .translation-panel summary {
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+    .translation-panel .input-row { margin-top: 0.9rem; }
+
     @media (max-width: 700px) {
       .input-row { grid-template-columns: 1fr; }
     }
 
     .card {
       background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 5px;
+      border: none;
+      border-top: 3px double var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
       padding: 1rem;
       display: flex;
       flex-direction: column;
-      border-width: 2px;
-      box-shadow: 4px 4px 0 rgba(23, 76, 68, 0.18);
+      box-shadow: none;
     }
 
     .card-header {
@@ -106,16 +132,18 @@
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
       color: var(--ink);
+      letter-spacing: 0.08em;
     }
 
     textarea {
       width: 100%;
       height: 280px;
       border: 1px solid var(--border);
-      border-radius: 3px;
+      border-radius: 0;
       padding: 0.75rem;
       font-size: 1.05rem;
-      font-family: inherit;
+      font-family: "Noto Serif TC", "PMingLiU", serif;
+      background: #fffdf8;
       resize: vertical;
       outline: none;
     }
@@ -125,9 +153,9 @@
       height: 280px;
       overflow-y: auto;
       border: 1px solid var(--border);
-      border-radius: 3px;
+      border-radius: 0;
       padding: 0.75rem;
-      background: #fff;
+      background: #fffdf8;
       line-height: 2.6;
       font-size: 1.15rem;
     }
@@ -140,8 +168,8 @@
       cursor: pointer;
       transition: background 0.15s;
     }
-    ruby.jyut-node:hover { background: #f8e7bd; }
-    ruby.jyut-node.selected { background: #f4d47d; outline: 2px solid var(--primary); }
+    ruby.jyut-node:hover { background: #ead8ad; }
+    ruby.jyut-node.selected { background: #dec886; outline: 1px solid var(--primary); }
 
     rt {
       font-size: 0.55em;
@@ -161,8 +189,9 @@
     /* Inspector */
     .inspector {
       background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 5px;
+      border-top: 3px double var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
       padding: 0.9rem;
       margin-bottom: 1.2rem;
     }
@@ -170,8 +199,8 @@
     .btn-candidate {
       padding: 0.3rem 0.7rem;
       border: 1px solid var(--border);
-      border-radius: 3px;
-      background: #fff7de;
+      border-radius: 0;
+      background: #f5e8c8;
       cursor: pointer;
       font-weight: 600;
     }
@@ -183,14 +212,14 @@
     button.btn {
       padding: 0.5rem 1rem;
       border: 1px solid var(--border);
-      border-radius: 3px;
-      background: #fff7de;
+      border-radius: 0;
+      background: #f5e8c8;
       cursor: pointer;
       font-size: 0.88rem;
       font-weight: 700;
       transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
     }
-    button.btn:hover { background: #f3df9c; transform: translateY(-1px); box-shadow: 2px 2px 0 rgba(23, 76, 68, 0.25); }
+    button.btn:hover { background: #dfc988; transform: translateY(-1px); box-shadow: 2px 2px 0 rgba(36, 32, 27, 0.25); }
 
     button.btn-pdf {
       background: var(--primary);
@@ -219,7 +248,7 @@
 
     .conversion-result {
       height: 280px;
-      background: #f9f0d6;
+      background: #f7ecd3;
     }
 
     .legend {
@@ -229,9 +258,25 @@
     .legend-item { display: flex; align-items: center; gap: 0.3rem; }
     .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
+    @media (max-width: 600px) {
+      body { padding: 0.75rem; }
+      header { margin-bottom: 1rem; padding: 0.8rem 0.65rem 0.7rem; }
+      header h1 { font-size: 1.55rem; }
+      .edition { font-size: 0.62rem; gap: 0.45rem; }
+      .status-bar { max-width: 100%; font-size: 0.78rem; }
+      .grid { gap: 0.9rem; margin: 0.9rem 0; }
+      .input-row { gap: 0.9rem; }
+      .card, .inspector, .translation-panel { padding: 0.75rem; }
+      textarea, .output-box { height: 190px; }
+      .output-box { font-size: 1.05rem; line-height: 2.4; }
+      .toolbar { justify-content: stretch; }
+      .toolbar button.btn { width: 100%; min-height: 2.75rem; }
+      .legend { column-gap: 0.75rem; row-gap: 0.35rem; justify-content: flex-start; }
+    }
+
     /* Print / PDF Specific Overrides */
     @media print {
-      header, .status-bar, .toolbar, .input-row, .inspector, .legend {
+      header, .status-bar, .toolbar, .translation-panel, .inspector, .legend {
         display: none !important;
       }
       body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
@@ -251,25 +296,16 @@
 
   <div class="container">
     <header>
+      <div class="edition">粵 語 讀 音</div>
       <h1>粵語粵拼標註器</h1>
       <div id="status-bar" class="status-bar">⏳ 正在初始化粵拼引擎...</div>
     </header>
 
     <div class="grid">
-      <div class="input-row">
-        <div class="card">
-          <div class="card-header">輸入普通話：</div>
-          <textarea id="input-text" oninput="stopAudio()" placeholder="請在此輸入普通話表達...">剛好老闆要求他等一下要開會，剩下的事情我會搞定的。
-變幻的一生，默默期待一份愛。</textarea>
-          <div class="toolbar preview-toolbar">
-            <button class="btn btn-convert" id="btn-convert-cantonese" onclick="convertToCantonese()">轉換成粵語表達</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">粵語表達轉換結果（可自行修改）：</div>
-          <textarea id="cantonese-output" class="conversion-result" oninput="useTranslationForAnnotation()" placeholder="輸入普通話表達後，按上方「轉換成粵語表達」"></textarea>
-        </div>
+      <div class="card">
+        <div class="card-header">輸入粵語文字：</div>
+        <textarea id="input-text" oninput="useInputForAnnotation()" placeholder="請在此輸入粵語文字...">啱啱老闆要求佢等一陣要開會，剩低嘅嘢我會搞掂㗎喇。
+變幻嘅一生，默默期待一份愛。</textarea>
       </div>
 
       <div class="card">
@@ -282,6 +318,23 @@
         </div>
       </div>
     </div>
+
+    <details class="translation-panel">
+      <summary>普通話轉粵語（選用）</summary>
+      <div class="input-row">
+        <div class="card">
+          <div class="card-header">輸入普通話：</div>
+          <textarea id="mandarin-input" placeholder="請在此輸入普通話表達..."></textarea>
+          <div class="toolbar preview-toolbar">
+            <button class="btn btn-convert" id="btn-convert-cantonese" onclick="convertToCantonese()">轉換成粵語表達</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">粵語轉換結果（可自行修改）：</div>
+          <textarea id="cantonese-output" class="conversion-result" oninput="useTranslationForAnnotation()" placeholder="按「轉換成粵語表達」後可自行修改"></textarea>
+        </div>
+      </div>
+    </details>
 
     <div class="inspector">
       <div class="card-header" style="margin:0;">多音字與讀音切換：</div>
@@ -304,7 +357,7 @@
 let selectedRubyNode = null;
 let isOfflineMode = false;
 let isSpeaking = false;
-let annotationSource = 'translation';
+let annotationSource = 'input';
 
 const FALLBACK_JYUTPING = {
   "咁": [["gam3", 3]], "啱": [["ngaam1", 1]], "老": [["lou5", 5]], "世": [["sai3", 3]], 
@@ -337,6 +390,11 @@ function getTone(jyutping) {
 
 function useTranslationForAnnotation() {
   annotationSource = 'translation';
+  convert();
+}
+
+function useInputForAnnotation() {
+  annotationSource = 'input';
   convert();
 }
 
@@ -409,7 +467,7 @@ function setPronunciation(jyut, tone) {
 }
 
 async function convertToCantonese() {
-  const sourceText = document.getElementById('input-text').value.trim();
+  const sourceText = document.getElementById('mandarin-input').value.trim();
   const resultArea = document.getElementById('cantonese-output');
   const convertButton = document.getElementById('btn-convert-cantonese');
 
